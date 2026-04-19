@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import type { User } from '../lib/api';
 import { Avatar, AVATAR_STYLES, dicebearUrl } from '../components/Avatar';
 import type { AvatarStyle } from '../components/Avatar';
+import { connectSocket } from '../lib/socket';
 
 export function ProfilePage() {
   const { user, setAuth, token } = useAuthStore();
@@ -29,6 +30,14 @@ export function ProfilePage() {
       const updated = await api.users.updateMe(payload as any);
       setAuth(updated, token!);
       setMsg('Profile saved!');
+      // propagate avatar/name change to any active table in real-time
+      try {
+        connectSocket().emit('profile_updated', {
+          name: updated.name,
+          avatarUrl: updated.avatarUrl ?? null,
+          avatarStyle: (updated as any).avatarStyle ?? null,
+        });
+      } catch { /* not connected to a table */ }
     } finally { setSaving(false); }
   }
 

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { User } from '../lib/api';
+import { disconnectSocket } from '../lib/socket';
 
 interface AuthState {
   user: User | null;
@@ -17,6 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   logout: () => {
     localStorage.removeItem('token');
+    disconnectSocket();
     set({ user: null, token: null });
   },
 }));

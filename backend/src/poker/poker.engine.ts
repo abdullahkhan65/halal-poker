@@ -17,6 +17,10 @@ export interface PlayerState {
   connected: boolean;
   rebuys: number;
   totalInvested: number;
+  hasActed: boolean;
+  avatarUrl?: string;
+  avatarStyle?: string;
+  lastAction?: string;
 }
 
 export interface GameState {
@@ -36,6 +40,7 @@ export interface GameState {
   winnerAmount?: number;
   handRank?: string;
   status: 'waiting' | 'playing' | 'finished';
+  turnExpiresAt?: number;
 }
 
 const RANKS: Rank[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -62,7 +67,7 @@ export function shuffle(deck: Card[]): Card[] {
 
 export function initGame(
   tableId: string,
-  players: { id: string; name: string; chips: number }[],
+  players: { id: string; name: string; chips: number; avatarUrl?: string; avatarStyle?: string }[],
   dealerIndex = 0,
   smallBlind = 100,
 ): GameState {
@@ -77,6 +82,8 @@ export function initGame(
     connected: true,
     rebuys: 0,
     totalInvested: p.chips,
+    hasActed: false,
+    lastAction: undefined,
   }));
 
   return {
@@ -111,6 +118,7 @@ export function dealHoleCards(state: GameState): GameState {
     p.totalBet = 0;
     p.folded = false;
     p.allIn = false;
+    p.hasActed = false;
   }
 
   postBlind(s, sbIdx, s.smallBlind);
@@ -148,8 +156,10 @@ export function applyAction(
 
   if (action === 'fold') {
     player.folded = true;
+    player.lastAction = 'Folded';
   } else if (action === 'check') {
     if (callAmount > 0) return s;
+    player.lastAction = 'Checked';
   } else if (action === 'call') {
     const actual = Math.min(callAmount, player.chips);
     player.chips -= actual;
@@ -157,6 +167,7 @@ export function applyAction(
     player.totalBet += actual;
     s.pot += actual;
     if (player.chips === 0) player.allIn = true;
+    player.lastAction = `Called ${actual.toLocaleString()}`;
   } else if (action === 'raise') {
     const raise = raiseAmount ?? s.minRaise;
     const total = s.currentBet + raise;
@@ -168,7 +179,14 @@ export function applyAction(
     s.currentBet = player.bet;
     s.minRaise = raise;
     if (player.chips === 0) player.allIn = true;
+    player.lastAction = player.allIn ? 'All-In' : `Raised to ${player.bet.toLocaleString()}`;
+    // everyone else needs to act again after a raise
+    for (const p of s.players) {
+      if (p.id !== player.id) p.hasActed = false;
+    }
   }
+
+  player.hasActed = true;
 
   const activePlayers = s.players.filter((p) => !p.folded && !p.allIn);
 
@@ -182,7 +200,7 @@ export function applyAction(
 
 function isBettingComplete(state: GameState): boolean {
   const active = state.players.filter((p) => !p.folded && !p.allIn);
-  return active.every((p) => p.bet === state.currentBet);
+  return active.every((p) => p.bet === state.currentBet && p.hasActed);
 }
 
 function nextActivePlayer(state: GameState, from: number): number {
@@ -200,6 +218,8 @@ function advanceRound(state: GameState): GameState {
 
   for (const p of s.players) {
     p.bet = 0;
+    p.hasActed = false;
+    p.lastAction = undefined;
   }
   s.currentBet = 0;
 

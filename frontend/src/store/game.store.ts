@@ -4,6 +4,7 @@ export interface Card { rank: string; suit: string }
 export interface PlayerState {
   id: string; name: string; chips: number; holeCards: Card[];
   bet: number; totalBet: number; folded: boolean; allIn: boolean; connected: boolean;
+  rebuys?: number; avatarUrl?: string; avatarStyle?: string; lastAction?: string;
 }
 export interface GameState {
   tableId: string; players: PlayerState[]; communityCards: Card[];
@@ -11,6 +12,7 @@ export interface GameState {
   dealerIndex: number; smallBlind: number; bigBlind: number; minRaise: number;
   winnerId?: string; winnerAmount?: number; handRank?: string;
   status: 'waiting' | 'playing' | 'finished';
+  turnExpiresAt?: number;
 }
 export interface TableInfo { id: string; name: string; playerCount: number; status: string }
 

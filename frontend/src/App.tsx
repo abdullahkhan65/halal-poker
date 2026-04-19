@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/auth.store';
 import { api } from './lib/api';
+import { connectSocket, disconnectSocket } from './lib/socket';
 import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { LobbyPage } from './pages/LobbyPage';
@@ -22,8 +23,13 @@ export default function App() {
   const { token, setAuth, logout } = useAuthStore();
 
   useEffect(() => {
-    if (!token) return;
-    api.auth.me().then((user) => setAuth(user, token)).catch(() => logout());
+    if (!token) {
+      disconnectSocket();
+      return;
+    }
+    api.auth.me()
+      .then((user) => { setAuth(user, token); connectSocket(); })
+      .catch(() => logout());
   }, [token]);
 
   return (
