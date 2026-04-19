@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String               @id @default(uuid())
+  email            String               @unique
+  name             String
+  avatarUrl        String?
+  avatarStyle      String               @default("adventurer")
+  totalEarnings    Int                  @default(0)
+  isAdmin          Boolean              @default(false)
+  createdAt        DateTime             @default(now())
+  inviteUsedId     String?              @unique
+  inviteUsed       Invite?              @relation("UsedInvite", fields: [inviteUsedId], references: [id])
+  invitesCreated   Invite[]             @relation("CreatedInvites")
+  sessionResults   SessionResult[]
+  tournamentPlayers TournamentPlayer[]
+}
+
+model Invite {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  createdById String
+  createdBy   User     @relation("CreatedInvites", fields: [createdById], references: [id])
+  usedBy      User?    @relation("UsedInvite")
+  createdAt   DateTime @default(now())
+}
+
+model Session {
+  id        String          @id @default(uuid())
+  date      DateTime        @default(now())
+  isOnline  Boolean         @default(true)
+  label     String?
+  results   SessionResult[]
+  createdAt DateTime        @default(now())
+}
+
+model SessionResult {
+  id         String   @id @default(uuid())
+  sessionId  String
+  userId     String
+  startChips Int      @default(20000)
+  endChips   Int
+  profit     Int
+  rebuys     Int      @default(0)
+  session    Session  @relation(fields: [sessionId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([sessionId, userId])
+}
+
+model Tournament {
+  id        String             @id @default(uuid())
+  name      String
+  status    String             @default("pending")
+  createdAt DateTime           @default(now())
+  players   TournamentPlayer[]
+  matches   TournamentMatch[]
+}
+
+model TournamentPlayer {
+  id           String     @id @default(uuid())
+  tournamentId String
+  userId       String
+  seed         Int
+  eliminated   Boolean    @default(false)
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@unique([tournamentId, userId])
+}
+
+model TournamentMatch {
+  id           String     @id @default(uuid())
+  tournamentId String
+  round        Int
+  seat         Int
+  player1Id    String?
+  player2Id    String?
+  winnerId     String?
+  status       String     @default("pending")
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+}
