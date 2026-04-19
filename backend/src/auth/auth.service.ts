@@ -33,19 +33,23 @@ export class AuthService {
     let user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      if (!inviteCode) throw new UnauthorizedException('Invite code required for new accounts');
-      const invite = await this.prisma.invite.findUnique({ where: { code: inviteCode } });
-      if (!invite) throw new BadRequestException('Invalid invite code');
-      const usedBy = await this.prisma.user.findUnique({ where: { inviteUsedId: invite.id } });
-      if (usedBy) throw new BadRequestException('Invite code already used');
+      const userCount = await this.prisma.user.count();
+      if (userCount === 0) {
+        // First user ever — becomes admin automatically, no invite needed
+        user = await this.prisma.user.create({
+          data: { email, name: email.split('@')[0], isAdmin: true },
+        });
+      } else {
+        if (!inviteCode) throw new UnauthorizedException('Invite code required for new accounts');
+        const invite = await this.prisma.invite.findUnique({ where: { code: inviteCode } });
+        if (!invite) throw new BadRequestException('Invalid invite code');
+        const usedBy = await this.prisma.user.findUnique({ where: { inviteUsedId: invite.id } });
+        if (usedBy) throw new BadRequestException('Invite code already used');
 
-      user = await this.prisma.user.create({
-        data: {
-          email,
-          name: email.split('@')[0],
-          inviteUsedId: invite.id,
-        },
-      });
+        user = await this.prisma.user.create({
+          data: { email, name: email.split('@')[0], inviteUsedId: invite.id },
+        });
+      }
     }
 
     const accessToken = this.jwt.sign({ sub: user.id, email: user.email });

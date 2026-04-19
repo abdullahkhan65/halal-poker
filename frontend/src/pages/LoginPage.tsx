@@ -22,7 +22,7 @@ export function LoginPage() {
     const t = hash.get('access_token');
     if (t) {
       setToken(t);
-      setStep('verify');
+      setStep('link-sent');
       window.history.replaceState(null, '', window.location.pathname);
     }
   }, []);
