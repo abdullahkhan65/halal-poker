@@ -94,6 +94,11 @@ export const api = {
         body: JSON.stringify({ token, inviteCode }),
       }),
     me: () => request<User>('/auth/me'),
+    devLogin: (email: string) =>
+      request<{ accessToken: string; user: User }>('/auth/dev-login', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+      }),
   },
   users: {
     all: () => request<User[]>('/users'),

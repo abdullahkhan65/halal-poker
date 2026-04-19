@@ -56,6 +56,13 @@ export class AuthService {
     return { accessToken, user };
   }
 
+  async devLogin(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) throw new BadRequestException('User not found');
+    const accessToken = this.jwt.sign({ sub: user.id, email: user.email });
+    return { accessToken, user };
+  }
+
   async validateUser(userId: string) {
     return this.prisma.user.findUnique({ where: { id: userId } });
   }

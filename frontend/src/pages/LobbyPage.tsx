@@ -14,9 +14,22 @@ export function LobbyPage() {
 
   useEffect(() => {
     const socket = connectSocket();
-    socket.emit('get_tables', {}, (data: TableInfo[]) => setTables(data ?? []));
+
+    const fetchTables = () => {
+      socket.emit('get_tables', {}, (data: TableInfo[]) => setTables(data ?? []));
+    };
+
+    if (socket.connected) {
+      fetchTables();
+    } else {
+      socket.once('connect', fetchTables);
+    }
+
     socket.on('tables_updated', setTables);
-    return () => { socket.off('tables_updated', setTables); };
+    return () => {
+      socket.off('connect', fetchTables);
+      socket.off('tables_updated', setTables);
+    };
   }, []);
 
   function createTable() {

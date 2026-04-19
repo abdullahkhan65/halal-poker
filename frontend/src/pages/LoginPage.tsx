@@ -36,6 +36,16 @@ export function LoginPage() {
     finally { setLoading(false); }
   }
 
+  async function devLogin() {
+    setLoading(true); setError('');
+    try {
+      const { accessToken, user } = await api.auth.devLogin(email);
+      setAuth(user, accessToken);
+      nav('/');
+    } catch (e: any) { setError(e.message); }
+    finally { setLoading(false); }
+  }
+
   async function verify() {
     setLoading(true); setError('');
     try {
@@ -85,6 +95,15 @@ export function LoginPage() {
             >
               {loading ? 'Sending...' : 'Send Magic Link'}
             </button>
+            {import.meta.env.DEV && (
+              <button
+                onClick={devLogin}
+                disabled={!email || loading}
+                className="w-full py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-sm transition disabled:opacity-50"
+              >
+                Dev Login (skip email)
+              </button>
+            )}
           </div>
         )}
 

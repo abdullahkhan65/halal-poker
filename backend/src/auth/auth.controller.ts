@@ -16,6 +16,14 @@ export class AuthController {
     return this.auth.verifyToken(token, inviteCode);
   }
 
+  @Post('dev-login')
+  devLogin(@Body('email') email: string) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Not available in production');
+    }
+    return this.auth.devLogin(email);
+  }
+
   @Get('me')
   @UseGuards(JwtAuthGuard)
   me(@Request() req) {
