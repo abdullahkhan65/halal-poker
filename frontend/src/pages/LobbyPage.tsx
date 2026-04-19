@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { connectSocket } from '../lib/socket';
-import { useGameStore, TableInfo } from '../store/game.store';
+import { useGameStore } from '../store/game.store';
+import type { TableInfo } from '../store/game.store';
 import { useAuthStore } from '../store/auth.store';
 
 export function LobbyPage() {

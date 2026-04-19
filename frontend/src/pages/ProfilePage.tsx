@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useAuthStore } from '../store/auth.store';
-import { api, User } from '../lib/api';
-import { Avatar, AvatarStyle, AVATAR_STYLES, dicebearUrl } from '../components/Avatar';
+import { api } from '../lib/api';
+import type { User } from '../lib/api';
+import { Avatar, AVATAR_STYLES, dicebearUrl } from '../components/Avatar';
+import type { AvatarStyle } from '../components/Avatar';
 
 export function ProfilePage() {
   const { user, setAuth, token } = useAuthStore();

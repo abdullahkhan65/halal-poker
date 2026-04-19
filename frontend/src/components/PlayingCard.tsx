@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Card } from '../store/game.store';
+import type { Card } from '../store/game.store';
 
 const SUIT_SYMBOL: Record<string, string> = {
   spades: '♠', hearts: '♥', diamonds: '♦', clubs: '♣',

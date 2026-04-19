@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { VoicePeer } from '../hooks/useVoiceChat';
+import type { VoicePeer } from '../hooks/useVoiceChat';
 
 interface Props {
   active: boolean;

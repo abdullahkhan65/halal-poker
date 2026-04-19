@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { api, User, Session } from '../lib/api';
+import { api } from '../lib/api';
+import type { User, Session } from '../lib/api';
 import { useAuthStore } from '../store/auth.store';
 import { useNavigate } from 'react-router-dom';
 

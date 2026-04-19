@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { api, User, Session } from '../lib/api';
+import { api } from '../lib/api';
+import type { User, Session } from '../lib/api';
 import { Avatar } from '../components/Avatar';
 
 export function LeaderboardPage() {

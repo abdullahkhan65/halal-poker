@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { api, Tournament, TournamentMatch, TournamentPlayer } from '../lib/api';
+import { api } from '../lib/api';
+import type { Tournament, TournamentMatch, TournamentPlayer } from '../lib/api';
 import { Avatar } from '../components/Avatar';
 import { useAuthStore } from '../store/auth.store';
 
