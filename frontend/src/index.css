@@ -1,12 +1,78 @@
 @import "tailwindcss";
 
-body {
-  background-color: #0a0a0a;
-  color: #f0ece1;
-  font-family: 'Inter', system-ui, sans-serif;
-  margin: 0;
+:root {
+  --gold: #c9a060;
+  --gold-light: #e8c97a;
+  --gold-dark: #8c6a30;
+  --gold-glow: rgba(201, 160, 96, 0.35);
+  --surface: #0c0c12;
+  --surface-2: #111118;
+  --felt: #0d4028;
+  --felt-dark: #061a10;
 }
 
-#root {
-  min-height: 100svh;
+* { box-sizing: border-box; }
+
+body {
+  background-color: #050507;
+  color: #e8dcc8;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
 }
+
+#root { min-height: 100svh; }
+
+.font-display { font-family: 'Cormorant Garamond', Georgia, serif; }
+.font-mono-luxury { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+
+.gold-text {
+  background: linear-gradient(135deg, #c9a060 0%, #f0d878 50%, #c9a060 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gold-border { border-color: rgba(201, 160, 96, 0.3); }
+
+/* Shimmer animation for premium elements */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 8px var(--gold-glow); }
+  50% { box-shadow: 0 0 24px var(--gold-glow), 0 0 48px rgba(201,160,96,0.15); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, #c9a060 0%, #f0d878 25%, #c9a060 50%, #f0d878 75%, #c9a060 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s linear infinite;
+}
+
+/* Glass card surface */
+.glass {
+  background: rgba(12, 12, 20, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(201, 160, 96, 0.12);
+}
+
+/* Luxury scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(201, 160, 96, 0.3); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201, 160, 96, 0.5); }
+
+/* Range input */
+input[type=range] { accent-color: var(--gold); }
