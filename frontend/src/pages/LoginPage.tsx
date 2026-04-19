@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { api } from '../lib/api';
 import { useAuthStore } from '../store/auth.store';
@@ -16,6 +16,16 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const setAuth = useAuthStore((s) => s.setAuth);
   const nav = useNavigate();
+
+  useEffect(() => {
+    const hash = new URLSearchParams(window.location.hash.slice(1));
+    const t = hash.get('access_token');
+    if (t) {
+      setToken(t);
+      setStep('verify');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  }, []);
 
   async function sendLink() {
     setLoading(true); setError('');
