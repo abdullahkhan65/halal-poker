@@ -54,6 +54,9 @@ export function TablePage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef(connectSocket());
   const prevRoundRef = useRef<string | undefined>();
+  // refs so the pre-action timeout always sees fresh values
+  const preActionRef = useRef<PreAction>(null);
+  const canCheckRef = useRef(false);
 
   const { peers, muted, active, error: voiceError, join: joinVoice, leave: leaveVoice, toggleMute } =
     useVoiceChat(socketRef.current, tableId ?? null, user?.id ?? null);
@@ -118,14 +121,20 @@ export function TablePage() {
   const myPlayer = myIdx >= 0 ? game?.players[myIdx] : null;
   const canCheck = isMyTurn && game?.currentBet === (myPlayer?.bet ?? 0);
 
+  // keep refs fresh every render so the timeout closure always sees latest values
+  preActionRef.current = preAction;
+  canCheckRef.current = canCheck;
+
   useEffect(() => {
-    if (!isMyTurn || !preAction || myPlayer?.folded) return;
+    if (!isMyTurn || !preActionRef.current || myPlayer?.folded) return;
     const timeout = setTimeout(() => {
-      if (preAction === 'fold') act('fold');
-      else if (preAction === 'check-or-fold') act(canCheck ? 'check' : 'fold');
-      else if (preAction === 'call-any') act(canCheck ? 'check' : 'call');
+      const pa = preActionRef.current;
+      const cc = canCheckRef.current;
+      if (pa === 'fold') act('fold');
+      else if (pa === 'check-or-fold') act(cc ? 'check' : 'fold');
+      else if (pa === 'call-any') act(cc ? 'check' : 'call');
       setPreAction(null);
-    }, 400);
+    }, 300);
     return () => clearTimeout(timeout);
   }, [isMyTurn]);
 
@@ -207,7 +216,7 @@ export function TablePage() {
         </div>
       </div>
 
-      {/* Main area: table + chat panel */}
+      {/* Main area: table */}
       <div className="flex flex-1 min-h-0 relative">
         {/* Oval table */}
         <div className="flex-1 flex items-center justify-center p-3 min-h-0">
@@ -300,15 +309,22 @@ export function TablePage() {
           </div>
         </div>
 
-        {/* Chat panel */}
-        <AnimatePresence>
-          {chatOpen && (
+      </div>
+
+      {/* Chat overlay — fixed, slides in from right, floats over the table */}
+      <AnimatePresence>
+        {chatOpen && (
+          <>
+            {/* Backdrop — click to close */}
             <motion.div
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 272, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="flex-shrink-0 flex flex-col bg-gray-950 border-l border-gray-800 overflow-hidden"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]"
+              onClick={() => setChatOpen(false)}
+            />
+            <motion.div
+              initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="fixed right-0 top-0 bottom-0 w-72 bg-gray-950/95 border-l border-gray-800 z-50 flex flex-col backdrop-blur-sm"
             >
               <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800 flex-shrink-0">
                 <span className="font-semibold text-white text-sm">Table Chat</span>
@@ -321,19 +337,12 @@ export function TablePage() {
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex gap-2 items-start ${msg.userId === user?.id ? 'flex-row-reverse' : ''}`}>
                     <div className="flex-shrink-0">
-                      <Avatar
-                        name={msg.name}
-                        avatarUrl={msg.avatarUrl}
-                        avatarStyle={msg.avatarStyle as AvatarStyle | undefined}
-                        size="sm"
-                      />
+                      <Avatar name={msg.name} avatarUrl={msg.avatarUrl} avatarStyle={msg.avatarStyle as AvatarStyle | undefined} size="sm" />
                     </div>
-                    <div className={`max-w-[170px] ${msg.userId === user?.id ? 'items-end' : 'items-start'} flex flex-col`}>
+                    <div className={`max-w-[170px] flex flex-col ${msg.userId === user?.id ? 'items-end' : 'items-start'}`}>
                       <span className="text-[10px] text-gray-500 mb-0.5">{msg.name}</span>
                       <div className={`px-3 py-1.5 rounded-2xl text-sm break-words ${
-                        msg.userId === user?.id
-                          ? 'bg-yellow-600 text-black rounded-tr-sm'
-                          : 'bg-gray-800 text-white rounded-tl-sm'
+                        msg.userId === user?.id ? 'bg-yellow-600 text-black rounded-tr-sm' : 'bg-gray-800 text-white rounded-tl-sm'
                       }`}>
                         {msg.message}
                       </div>
@@ -347,24 +356,22 @@ export function TablePage() {
                   <input
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && sendChat()}
+                    onKeyDown={(e) => { e.stopPropagation(); if (e.key === 'Enter') sendChat(); }}
                     placeholder="Message..."
                     maxLength={300}
+                    autoFocus
                     className="flex-1 px-3 py-1.5 rounded-xl bg-gray-800 border border-gray-700 text-white text-sm focus:outline-none focus:border-yellow-500 transition"
                   />
-                  <button
-                    onClick={sendChat}
-                    disabled={!chatInput.trim()}
-                    className="px-3 py-1.5 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm transition disabled:opacity-40"
-                  >
+                  <button onClick={sendChat} disabled={!chatInput.trim()}
+                    className="px-3 py-1.5 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm transition disabled:opacity-40">
                     ↑
                   </button>
                 </div>
               </div>
             </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Action bar */}
       <div className="flex-shrink-0 px-4 pb-5 pt-1">

@@ -33,7 +33,7 @@ export function LeaderboardPage() {
               className="flex items-center gap-4 p-4 rounded-xl bg-gray-900 border border-gray-800"
             >
               <span className="text-2xl w-8 text-center">{medals[i] ?? `#${i + 1}`}</span>
-              <Avatar name={user.name} avatarUrl={user.avatarUrl} size="md" />
+              <Avatar name={user.name} avatarUrl={user.avatarUrl} avatarStyle={(user as any).avatarStyle} size="md" />
               <div className="flex-1">
                 <div className="font-semibold text-white">{user.name}</div>
                 <div className="text-xs text-gray-400">{user.email}</div>
@@ -66,7 +66,7 @@ export function LeaderboardPage() {
               <div className="space-y-2">
                 {session.results.sort((a, b) => b.profit - a.profit).map((r) => (
                   <div key={r.id} className="flex items-center gap-3 text-sm">
-                    <Avatar name={r.user.name} avatarUrl={r.user.avatarUrl} size="sm" />
+                    <Avatar name={r.user.name} avatarUrl={r.user.avatarUrl} avatarStyle={(r.user as any).avatarStyle} size="sm" />
                     <span className="flex-1 text-gray-300">{r.user.name}</span>
                     <span className="text-gray-500 text-xs">{r.endChips.toLocaleString()} chips</span>
                     <span className={`font-mono font-bold ${r.profit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
